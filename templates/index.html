@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Classifier</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h2>Email Classifier By Sufian</h2>
+    <form id="emailForm">
+        <label for="emailMessage">Email Message:</label><br>
+        <textarea id="emailMessage" name="emailMessage" rows="4" cols="50"></textarea><br>
+        <input type="button" value="Classify Email" onclick="classifyEmail()">
+    </form>
+    <div id="result"></div>
+    <div id="feedbackForm" style="display:none;">
+        <label for="feedback">Was it Spam or Ham?</label><br>
+        <select id="feedback" name="feedback">
+            <option value="1">Spam</option>
+            <option value="0">Ham</option>
+        </select>
+        <input type="button" value="Submit Feedback" onclick="submitFeedback()">
+    </div>
+
+    <script>
+        function classifyEmail() {
+            var message = document.getElementById('emailMessage').value;
+
+            // Check if the message is empty or contains only whitespace
+            if (!message.trim()) {
+                alert('Please enter an email message.');
+                return; // Prevent further execution if the message is empty
+            }
+
+            fetch('/classify-email', {
+                method: 'POST',
+                body: message
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 
+                    '0 = Ham, 1 = Spam' + '<br><br>' +
+                    'TfidfVectorizer: ' + data.TfidfVectorizer + '<br>' +
+                    'CountVectorizer: ' + data.CountVectorizer;
+                document.getElementById('feedbackForm').style.display = 'block';
+            });
+        }
+
+        function submitFeedback() {
+            var feedback = document.getElementById('feedback').value;
+            var message = document.getElementById('emailMessage').value;
+            var feedbackconvert = Number(feedback);
+            fetch('/submit-feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message, feedback: feedbackconvert })
+            });
+            document.getElementById('feedbackForm').style.display = 'none';
+            document.getElementById('emailForm').reset();
+            document.getElementById('result').innerHTML = '';
+        }
+
+    </script>
+    
+</body>
+</html>
